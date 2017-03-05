@@ -37,7 +37,7 @@ class Vigenere:
                 output += letter
             else:
                 decipher_char = (ord(letter) - ord(keyword[key]) - 194) % 26 + 97
-                output += chr(cipher_char)
+                output += chr(decipher_char)
             key += 1
         return output
 
@@ -130,12 +130,36 @@ if(__name__ == "__main__"):
     except PermissionError:
         __errorVigenere(5)
 
-    # Encode process
     if flags.encode_filename:
+        # Encode process
         key = flags.key if flags.key else Vigenere.create_random_key(30)
         try:
-            text = open(flags.encode_filename, "r")
+            lines = open(flags.encode_filename, "r").readlines()
         except PermissionError:
             __errorVigenere(6)
         except FileNotFoundError:
             __errorVigenere(3)
+        text = ''
+        for line in lines:
+            text += line
+        out_text = Vigenere.encode(text, key)
+        outfile.write(out_text)
+        print("Success. The outfile is located at " + flags.outfile + " and the key is:")
+        print(key)
+        print("Do not lose this key! You'll need it to recover the text.")
+        sys.exit(0)
+    elif flags.decode_filename:
+        # Decode process
+        key = flags.key
+        try:
+            lines = open(flags.decode_filename, "r").readlines()
+        except PermissionError:
+            __errorVigenere(6)
+        except FileNotFoundError:
+            __errorVigenere(4)
+        text = ''
+        for line in lines:
+            text += line
+        out_text = Vigenere.decode(text, key)
+        outfile.write(out_text)
+        print("Success. The outfile is located at " + flags.outfile)
