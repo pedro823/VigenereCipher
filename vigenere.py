@@ -9,6 +9,8 @@ class Vigenere:
         for char in text.lower().encode("ascii", "ignore"):
             if char <= 122 and char >= 97:
                 newtext += chr(char)
+            elif char == 10 or char == 32 or char == 9:
+                newtext += chr(char)
         return newtext
 
     def encode(text, keyword):
@@ -17,8 +19,11 @@ class Vigenere:
         for letter in Vigenere.asciify(text):
             if key == maxkey:
                 key = 0
-            cipher_char = (ord(letter) + ord(keyword[key]) - 194) % 26 + 97
-            output += chr(cipher_char)
+            if letter == '\t' or letter == '\n' or letter == ' ':
+                output += letter
+            else:
+                cipher_char = (ord(letter) + ord(keyword[key]) - 194) % 26 + 97
+                output += chr(cipher_char)
             key += 1
         return output
 
@@ -28,8 +33,11 @@ class Vigenere:
         for letter in Vigenere.asciify(text):
             if key == maxkey:
                 key = 0
-            decipher_char = (ord(letter) - ord(keyword[key]) - 194) % 26 + 97
-            output += chr(cipher_char)
+            if letter == '\t' or letter == '\n' or letter == ' ':
+                output += letter
+            else:
+                decipher_char = (ord(letter) - ord(keyword[key]) - 194) % 26 + 97
+                output += chr(cipher_char)
             key += 1
         return output
 
@@ -46,11 +54,19 @@ class Vigenere:
 
 def __errorVigenere(arg):
     if arg == 0:
-        msg = "No encode or decode archive provided. type " + sys.argv[0] + "--help for options."
+        msg = "No encode or decode archive provided. type " + sys.argv[0] + " --help for options."
     elif arg == 1:
         msg = "Both encoding and decoding set."
     elif arg == 2:
         msg = "No key provided to decode ciphered output. Use -k KEY or --key=KEY."
+    elif arg == 3:
+        msg = "File to encode not found."
+    elif arg == 4:
+        msg = "File to decode not found."
+    elif arg == 5:
+        msg = "Impossible to write to outfile specified, check file permissions."
+    elif arg == 6:
+        msg = sys.argv[0] + " does not have permission to read the input file. Try sudo."
     else:
         msg = "Unknown error occurred."
 
@@ -99,14 +115,27 @@ if(__name__ == "__main__"):
 
     (flags, args) = parser.parse_args()
 
+
     # Initial Error Checking
-    if flags.decode_filename == None and flags.decode_filename == None:
+    if not (flags.encode_filename or flags.decode_filename):
         __errorVigenere(0)
-    if flags.encode_filename != None and flags.decode_filename != None:
+    if flags.encode_filename and flags.decode_filename:
         __errorVigenere(1)
-    if flags.decode_filename != None and flags.key == None:
+    if flags.decode_filename and not flags.key:
         __errorVigenere(2)
+
+    # Open outfile
+    try:
+        outfile = open(flags.outfile, "w")
+    except PermissionError:
+        __errorVigenere(5)
 
     # Encode process
     if flags.encode_filename:
-        
+        key = flags.key if flags.key else Vigenere.create_random_key(30)
+        try:
+            text = open(flags.encode_filename, "r")
+        except PermissionError:
+            __errorVigenere(6)
+        except FileNotFoundError:
+            __errorVigenere(3)
