@@ -4,13 +4,17 @@ import sys
 from optparse import OptionParser
 
 class Vigenere:
+    AllowedCharacters = [' ', '\n', '\t', ',', '.', ':', ';', '(', ')', '[', ']', '{', '}']
     def asciify(text):
         newtext = ''
         for char in text.lower().encode("ascii", "ignore"):
-            if char <= 122 and char >= 97:
-                newtext += chr(char)
-            elif char == 10 or char == 32 or char == 9:
-                newtext += chr(char)
+            for i in Vigenere.AllowedCharacters:
+                if char == ord(i):
+                    newtext += chr(char)
+                    break
+            else:
+                if char <= 122 and char >= 97:
+                    newtext += chr(char)
         return newtext
 
     def encode(text, keyword):
@@ -19,8 +23,10 @@ class Vigenere:
         for letter in Vigenere.asciify(text):
             if key == maxkey:
                 key = 0
-            if letter == '\t' or letter == '\n' or letter == ' ':
-                output += letter
+            for i in Vigenere.AllowedCharacters:
+                if letter == i:
+                    output += letter
+                    break
             else:
                 cipher_char = (ord(letter) + ord(keyword[key]) - 194) % 26 + 97
                 output += chr(cipher_char)
@@ -33,8 +39,10 @@ class Vigenere:
         for letter in Vigenere.asciify(text):
             if key == maxkey:
                 key = 0
-            if letter == '\t' or letter == '\n' or letter == ' ':
-                output += letter
+            for i in Vigenere.AllowedCharacters:
+                if letter == i:
+                    output += letter
+                    break
             else:
                 decipher_char = (ord(letter) - ord(keyword[key])) % 26 + 97
                 output += chr(decipher_char)
